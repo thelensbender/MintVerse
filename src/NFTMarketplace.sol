@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 // Import Solidity libraries
-import {IERC721} from '@openzeppelin/contracts/token/ERC721/IERC721.sol';
-import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
+import {IERC721} from '../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol';
+import {Ownable} from '../lib/openzeppelin-contracts/contracts/access/Ownable.sol';
 
 contract NFTMarketplace {
    struct Listing {
