@@ -5,7 +5,7 @@ pragma solidity ^0.8.0;
 import {IERC721} from '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
-contract NFTMarketplace {
+contract NFTMarketplace is Ownable {
    struct Listing {
       address seller;
       uint256 price;
@@ -23,6 +23,7 @@ contract NFTMarketplace {
    error NoFeesToWithdraw();
    error TransferFailed();
    error FeeTooHigh();
+   error SellerCannotBuyOwnNFT();
 
    // Events
    event NFTListed(address indexed seller, address indexed nftContract, uint256 indexed tokenId, uint256 price);
@@ -95,6 +96,11 @@ contract NFTMarketplace {
       Listing memory listing = listings[nftContract][tokenId];
       if (listing.active == false) {
          revert NotListed();
+      }
+
+      // Make sure seller is not buying their own NFT
+      if(msg.sender == listing.seller) {
+         revert SellerCannotBuyOwnNFT();
       }
 
       // Make sure that the buyer sends the exact price
