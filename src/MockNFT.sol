@@ -1,12 +1,27 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.20;
 
-import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MockNFT is ERC721 {
-    constructor() ERC721("MockNFT", "MNFT") {}
+contract MockNFT is ERC721, Ownable {
+    uint256 private _nextTokenId;
 
-    function mint(address to, uint256 tokenId) external {
-        _mint(to, tokenId);
+constructor() ERC721("Mock NFT", "MNFT") Ownable(msg.sender) {}
+
+    function mint(address to) external returns (uint256) {
+        uint256 tokenId = _nextTokenId;
+        _safeMint(to, tokenId);
+        _nextTokenId++;
+        return tokenId;
     }
-}
+    function mintTo(address to) external onlyOwner returns (uint256) {
+        uint256 tokenId = _nextTokenId;
+        _safeMint(to, tokenId);
+        _nextTokenId++;
+        return tokenId;
+    }
+    function nextTokenId() external view returns (uint256) {
+        return _nextTokenId;
+    }
+} 
