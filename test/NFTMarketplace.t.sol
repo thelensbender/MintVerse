@@ -1,22 +1,21 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 import "forge-std/Test.sol";
 import "../src/NFTMarketplace.sol";
 import "../src/MockNFT.sol";
 
 contract NFTMarketplaceTest is Test {
-
     NFTMarketplace marketplace;
     MockNFT nft;
 
-    address owner    = address(1);
-    address seller   = address(2);
-    address buyer    = address(3);
+    address owner = address(1);
+    address seller = address(2);
+    address buyer = address(3);
     address attacker = address(4);
 
     uint256 tokenId = 1;
-    uint256 price   = 1 ether;
+    uint256 price = 1 ether;
 
     function setUp() public {
         // Deploy marketplace as owner
