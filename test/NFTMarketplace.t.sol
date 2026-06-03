@@ -9,9 +9,9 @@ contract NFTMarketplaceTest is Test {
     NFTMarketplace marketplace;
     MockNFT nft;
 
-    address owner    = address(1);
-    address seller   = address(2);
-    address buyer    = address(3);
+    address owner = address(1);
+    address seller = address(2);
+    address buyer = address(3);
     address attacker = address(4);
 
     uint256 tokenId;

@@ -5,12 +5,11 @@ import "forge-std/Test.sol";
 import "../src/MockNFT.sol";
 
 contract MockNFTTest is Test {
-
     MockNFT nft;
 
-    address owner    = address(1);
-    address user1    = address(2);
-    address user2    = address(3);
+    address owner = address(1);
+    address user1 = address(2);
+    address user2 = address(3);
     address attacker = address(4);
 
     function setUp() public {
@@ -41,13 +40,13 @@ contract MockNFTTest is Test {
 
     // TokenId starts from 0 and increments by 1 each mint
     function test_Mint_tokenIdIncrementsCorrectly() public {
-        uint256 firstId  = nft.mint(user1);
+        uint256 firstId = nft.mint(user1);
         uint256 secondId = nft.mint(user1);
-        uint256 thirdId  = nft.mint(user2);
+        uint256 thirdId = nft.mint(user2);
 
-        assertEq(firstId,  0);
+        assertEq(firstId, 0);
         assertEq(secondId, 1);
-        assertEq(thirdId,  2);
+        assertEq(thirdId, 2);
     }
 
     // nextTokenId() should reflect how many tokens have been minted
