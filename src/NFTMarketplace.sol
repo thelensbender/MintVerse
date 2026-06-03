@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.33;
 
 // Import Solidity libraries
 import {IERC721} from '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
-contract NFTMarketplace {
+contract NFTMarketplace is Ownable {
    struct Listing {
       address seller;
       uint256 price;
