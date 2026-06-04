@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.24;
 
 // Import Solidity libraries
 import {IERC721} from '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
-contract NFTMarketplace {
+contract NFTMarketplace is Ownable {
    struct Listing {
       address seller;
       uint256 price;
@@ -23,10 +23,13 @@ contract NFTMarketplace {
    error NoFeesToWithdraw();
    error TransferFailed();
    error FeeTooHigh();
+   error SellerCannotBuyOwnNFT();
 
    // Events
    event NFTListed(address indexed seller, address indexed nftContract, uint256 indexed tokenId, uint256 price);
-   event NFTSold(address indexed buyer, address indexed seller, address indexed nftContract, uint256 tokenId, uint256 price);
+   event NFTSold(
+      address indexed buyer, address indexed seller, address indexed nftContract, uint256 tokenId, uint256 price
+   );
    event ListingCancelled(address indexed seller, address indexed nftContract, uint256 indexed tokenId);
    event FeesWithdrawn(address indexed owner, uint256 amount);
    event FeeUpdated(uint256 newFee);
@@ -41,7 +44,7 @@ contract NFTMarketplace {
    }
 
    // Function for sellers to list NFT
-   function listNFT(address nftContract, uint256 tokenId, uint256 price) external{
+   function listNFT(address nftContract, uint256 tokenId, uint256 price) external {
       // Makes sure that price is above 0
       if (price < 1) {
          revert PriceMustBeAboveZero();
@@ -73,12 +76,12 @@ contract NFTMarketplace {
    function cancelListing(address nftContract, uint256 tokenId) external {
       Listing memory listing = listings[nftContract][tokenId];
       // Make sure that it is the seller that can call it
-      if(msg.sender != listing.seller) {
+      if (msg.sender != listing.seller) {
          revert NotSeller();
       }
 
       // Make sure that the NFT is listed
-      if(listing.active == false) {
+      if (listing.active == false) {
          revert NotListed();
       }
 
@@ -88,7 +91,6 @@ contract NFTMarketplace {
       emit ListingCancelled(msg.sender, nftContract, tokenId);
    }
 
-
    // Function for buyers to buy NFT
    function buyNFT(address nftContract, uint256 tokenId) external payable {
       // Makes sure that the NFT is listed
@@ -97,11 +99,15 @@ contract NFTMarketplace {
          revert NotListed();
       }
 
-      // Make sure that the buyer sends the exact price
-      if(msg.value != listing.price) {
-         revert IncorrectPaymentAmount();
+      // Make sure seller is not buying their own NFT
+      if (msg.sender == listing.seller) {
+         revert SellerCannotBuyOwnNFT();
       }
 
+      // Make sure that the buyer sends the exact price
+      if (msg.value != listing.price) {
+         revert IncorrectPaymentAmount();
+      }
 
       // Mark the NFT as inactive
       listings[nftContract][tokenId].active = false;
@@ -119,8 +125,8 @@ contract NFTMarketplace {
       IERC721(nftContract).safeTransferFrom(listing.seller, msg.sender, tokenId);
 
       // Transfer ETH to the seller
-      (bool success, ) = listing.seller.call{value: sellerProfit}("");
-      if(!success) {
+      (bool success,) = listing.seller.call{value: sellerProfit}("");
+      if (!success) {
          revert TransferFailed();
       }
 
@@ -131,7 +137,7 @@ contract NFTMarketplace {
    // Function for the owner of contract to withdraw fee
    function withdrawFees() external onlyOwner {
       // Make sure there is fees to withdraw
-      if(platformFeesAccumulated == 0) {
+      if (platformFeesAccumulated == 0) {
          revert NoFeesToWithdraw();
       }
 
@@ -139,8 +145,8 @@ contract NFTMarketplace {
       platformFeesAccumulated = 0;
 
       // Send fee to owner wallet
-      (bool success, ) = owner().call{value: fee}("");
-      if(!success) {
+      (bool success,) = owner().call{value: fee}("");
+      if (!success) {
          revert TransferFailed();
       }
 
@@ -150,13 +156,13 @@ contract NFTMarketplace {
    // Function to update platform fee
    function updatePlatformFee(uint256 _updatePlatformFee) external onlyOwner {
       // Makes sure that the fee isnt too high
-      if(_updatePlatformFee > 10000) {
+      if (_updatePlatformFee > 10000) {
          revert FeeTooHigh();
       }
 
       // Update the platform fee
-     platformFeeBps =  _updatePlatformFee;
+      platformFeeBps = _updatePlatformFee;
 
-     emit FeeUpdated(platformFeeBps);
+      emit FeeUpdated(platformFeeBps);
    }
 }
