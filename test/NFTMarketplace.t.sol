@@ -146,4 +146,56 @@ contract NFTMarketplaceTest is Test {
         vm.expectRevert(NFTMarketplace.FeeTooHigh.selector);
         marketplace.updatePlatformFee(10001);
     }
+
+    /*//////////////////////////////////////////////////////////////
+                        vm.expectEmit TESTS
+    //////////////////////////////////////////////////////////////*/
+
+    // Test that listNFT emits NFTListed event with correct arguments
+    function test_ListNFT_emitsEvent() public {
+        // Tell Foundry to check all 4 fields of the event
+        vm.expectEmit(true, true, true, true);
+
+        // Emit the event we EXPECT to see
+        emit NFTMarketplace.NFTListed(seller, address(nft), tokenId, price);
+
+        // Call the function that should emit it
+        vm.prank(seller);
+        marketplace.listNFT(address(nft), tokenId, price);
+    }
+
+    // Test that buyNFT emits NFTSold event with correct arguments
+    function test_BuyNFT_emitsEvent() public {
+        // List the NFT first
+        vm.prank(seller);
+        marketplace.listNFT(address(nft), tokenId, price);
+
+        // Tell Foundry to check all 4 fields of the event
+        vm.expectEmit(true, true, true, true);
+
+        // Emit the event we EXPECT to see
+        emit NFTMarketplace.NFTSold(buyer, seller, address(nft), tokenId, price);
+
+        // Call buyNFT that should emit it
+        vm.deal(buyer, price);
+        vm.prank(buyer);
+        marketplace.buyNFT{value: price}(address(nft), tokenId);
+    }
+
+    // Test that cancelListing emits ListingCancelled event
+    function test_CancelListing_emitsEvent() public {
+        // List the NFT first
+        vm.prank(seller);
+        marketplace.listNFT(address(nft), tokenId, price);
+
+        // Tell Foundry to check all 4 fields of the event
+        vm.expectEmit(true, true, true, true);
+
+        // Emit the event we EXPECT to see
+        emit NFTMarketplace.ListingCancelled(seller, address(nft), tokenId);
+
+        // Call the function that should emit it
+        vm.prank(seller);
+        marketplace.cancelListing(address(nft), tokenId);
+    }
 }
