@@ -6,101 +6,101 @@ import "../src/NFTMarketplace.sol";
 import "../src/MockNFT.sol";
 
 contract NFTMarketplaceTest is Test {
-    NFTMarketplace marketplace;
-    MockNFT nft;
+   NFTMarketplace marketplace;
+   MockNFT nft;
 
    // Actors
-    address owner = address(1);
-    address seller = address(2);
-    address buyer = address(3);
-    address attacker = address(4);
+   address owner = address(1);
+   address seller = address(2);
+   address buyer = address(3);
+   address attacker = address(4);
 
-    uint256 tokenId;
-    uint256 price = 1 ether;
+   uint256 tokenId;
+   uint256 price = 1 ether;
 
-    function setUp() public {
-        // Deploy marketplace as owner
-        vm.prank(owner);
-        marketplace = new NFTMarketplace(250);
+   function setUp() public {
+      // Deploy marketplace as owner
+      vm.prank(owner);
+      marketplace = new NFTMarketplace(250);
 
-        // Deploy MockNFT
-        nft = new MockNFT();
+      // Deploy MockNFT
+      nft = new MockNFT();
 
-        // Mint token to seller — returns the tokenId
-        tokenId = nft.mint(seller);
+      // Mint token to seller — returns the tokenId
+      tokenId = nft.mint(seller);
 
-        // Seller approves marketplace
-        vm.prank(seller);
-        nft.approve(address(marketplace), tokenId);
-    }
+      // Seller approves marketplace
+      vm.prank(seller);
+      nft.approve(address(marketplace), tokenId);
+   }
 
 
    /// listNFT() REVERT TESTS ///
    // Test to makes sure that a seller cannot list an NFT with a price of 0
-    function test_ListNFT_reverts_if_priceIsZero() public {
-        vm.prank(seller);
-        vm.expectRevert(NFTMarketplace.PriceMustBeAboveZero.selector);
-        marketplace.listNFT(address(nft), tokenId, 0);
-    }
+   function test_ListNFT_reverts_if_priceIsZero() public {
+      vm.prank(seller);
+      vm.expectRevert(NFTMarketplace.PriceMustBeAboveZero.selector);
+      marketplace.listNFT(address(nft), tokenId, 0);
+   }
 
-   // Test to make sure that another account cannot list the seller's NFT
-    function test_ListNFT_reverts_if_notTokenOwner() public {
-        vm.prank(attacker);
-        vm.expectRevert(NFTMarketplace.NotTokenOwner.selector);
-        marketplace.listNFT(address(nft), tokenId, price);
-    }
+// Test to make sure that another account cannot list the seller's NFT
+   function test_ListNFT_reverts_if_notTokenOwner() public {
+      vm.prank(attacker);
+      vm.expectRevert(NFTMarketplace.NotTokenOwner.selector);
+      marketplace.listNFT(address(nft), tokenId, price);
+   }
 
-   // Tests to make sure that a seller cannot list the same NFT more than once
-    function test_ListNFT_reverts_if_alreadyListed() public {
-        vm.prank(seller);
-        marketplace.listNFT(address(nft), tokenId, price);
+// Tests to make sure that a seller cannot list the same NFT more than once
+   function test_ListNFT_reverts_if_alreadyListed() public {
+      vm.prank(seller);
+      marketplace.listNFT(address(nft), tokenId, price);
 
-        vm.prank(seller);
-        vm.expectRevert(NFTMarketplace.AlreadyListed.selector);
-        marketplace.listNFT(address(nft), tokenId, price);
-    }
+      vm.prank(seller);
+      vm.expectRevert(NFTMarketplace.AlreadyListed.selector);
+      marketplace.listNFT(address(nft), tokenId, price);
+   }
 
-   // Tests to make sure that the NFT lists correctly
-      function test_ListNFT_success() public {
-         vm.prank(seller);
-         marketplace.listNFT(address(nft), tokenId, price);
-         (address storedSeller, uint256 storedPrice, bool active) = marketplace.listings(address(nft), tokenId);
-         assertEq(storedSeller, seller);
-         assertEq(storedPrice, price);
-         assertEq(active, true);
-      }
+// Tests to make sure that the NFT lists correctly
+   function test_ListNFT_success() public {
+      vm.prank(seller);
+      marketplace.listNFT(address(nft), tokenId, price);
+      (address storedSeller, uint256 storedPrice, bool active) = marketplace.listings(address(nft), tokenId);
+      assertEq(storedSeller, seller);
+      assertEq(storedPrice, price);
+      assertEq(active, true);
+   }
 
 
-    /// buyNFT() REVERT TESTS ///
-   // Tests to make sure that a buyer cannot buy an NFT that is not listed
-    function test_BuyNFT_reverts_if_notListed() public {
-        vm.deal(buyer, price);
-        vm.prank(buyer);
-        vm.expectRevert(NFTMarketplace.NotListed.selector);
-        marketplace.buyNFT{value: price}(address(nft), tokenId);
-    }
+   /// buyNFT() REVERT TESTS ///
+// Tests to make sure that a buyer cannot buy an NFT that is not listed
+   function test_BuyNFT_reverts_if_notListed() public {
+      vm.deal(buyer, price);
+      vm.prank(buyer);
+      vm.expectRevert(NFTMarketplace.NotListed.selector);
+      marketplace.buyNFT{value: price}(address(nft), tokenId);
+   }
 
-   // Tests to make sure that a buyer cannot purchase the NFT with an incorrect ETH price
-    function test_BuyNFT_reverts_if_incorrectETH() public {
-        vm.prank(seller);
-        marketplace.listNFT(address(nft), tokenId, price);
+// Tests to make sure that a buyer cannot purchase the NFT with an incorrect ETH price
+   function test_BuyNFT_reverts_if_incorrectETH() public {
+      vm.prank(seller);
+      marketplace.listNFT(address(nft), tokenId, price);
 
-        vm.deal(buyer, price);
-        vm.prank(buyer);
-        vm.expectRevert(NFTMarketplace.IncorrectPaymentAmount.selector);
-        marketplace.buyNFT{value: 0.5 ether}(address(nft), tokenId);
-    }
+      vm.deal(buyer, price);
+      vm.prank(buyer);
+      vm.expectRevert(NFTMarketplace.IncorrectPaymentAmount.selector);
+      marketplace.buyNFT{value: 0.5 ether}(address(nft), tokenId);
+   }
 
-   // Tests to make sure that seller doesn't buy its own NFT
-    function test_BuyNFT_reverts_if_sellerBuysOwnNFT() public {
-        vm.prank(seller);
-        marketplace.listNFT(address(nft), tokenId, price);
+// Tests to make sure that seller doesn't buy its own NFT
+   function test_BuyNFT_reverts_if_sellerBuysOwnNFT() public {
+      vm.prank(seller);
+      marketplace.listNFT(address(nft), tokenId, price);
 
-        vm.deal(seller, price);
-        vm.prank(seller);
-        vm.expectRevert(NFTMarketplace.SellerCannotBuyOwnNFT.selector);
-        marketplace.buyNFT{value: price}(address(nft), tokenId);
-    }
+      vm.deal(seller, price);
+      vm.prank(seller);
+      vm.expectRevert(NFTMarketplace.SellerCannotBuyOwnNFT.selector);
+      marketplace.buyNFT{value: price}(address(nft), tokenId);
+   }
 
    // 
    function test_BuyNFT_success() public {
@@ -146,28 +146,28 @@ contract NFTMarketplaceTest is Test {
 
     /// cancelListing() REVERT TESTS ///
    // Test to make sure that only seller can cancel the listing of an NFT
-    function test_CancelListing_reverts_if_notSeller() public {
-        vm.prank(seller);
-        marketplace.listNFT(address(nft), tokenId, price);
+   function test_CancelListing_reverts_if_notSeller() public {
+      vm.prank(seller);
+      marketplace.listNFT(address(nft), tokenId, price);
 
-        vm.prank(attacker);
-        vm.expectRevert(NFTMarketplace.NotSeller.selector);
-        marketplace.cancelListing(address(nft), tokenId);
-    }
+      vm.prank(attacker);
+      vm.expectRevert(NFTMarketplace.NotSeller.selector);
+      marketplace.cancelListing(address(nft), tokenId);
+   }
 
-   // Test to make sure that a seller cannot cancel an NFT that is not listed.(Note: After a buyer purchases the NFT, it becomes cancelled.)
-    function test_CancelListing_reverts_if_notListed() public {
-        vm.prank(seller);
-        marketplace.listNFT(address(nft), tokenId, price);
+// Test to make sure that a seller cannot cancel an NFT that is not listed.(Note: After a buyer purchases the NFT, it becomes cancelled.)
+   function test_CancelListing_reverts_if_notListed() public {
+      vm.prank(seller);
+      marketplace.listNFT(address(nft), tokenId, price);
 
-        vm.deal(buyer, price);
-        vm.prank(buyer);
-        marketplace.buyNFT{value: price}(address(nft), tokenId);
+      vm.deal(buyer, price);
+      vm.prank(buyer);
+      marketplace.buyNFT{value: price}(address(nft), tokenId);
 
-        vm.prank(seller);
-        vm.expectRevert(NFTMarketplace.NotListed.selector);
-        marketplace.cancelListing(address(nft), tokenId);
-    }
+      vm.prank(seller);
+      vm.expectRevert(NFTMarketplace.NotListed.selector);
+      marketplace.cancelListing(address(nft), tokenId);
+   }
 
    //  Tests to make sure that seller can cancel a listed NFT he listed
    function test_seller_cancelled() public {
@@ -182,18 +182,18 @@ contract NFTMarketplaceTest is Test {
 
     /// withdrawFees() REVERT TESTS ///
    // Test to make sure that only owner can withdraw the fee
-    function test_WithdrawFees_reverts_if_notOwner() public {
-        vm.prank(attacker);
-        vm.expectRevert();
-        marketplace.withdrawFees();
-    }
+   function test_WithdrawFees_reverts_if_notOwner() public {
+      vm.prank(attacker);
+      vm.expectRevert();
+      marketplace.withdrawFees();
+   }
 
    // Test to make sure that owner cannot withdraw when no fee exists
-    function test_WithdrawFees_reverts_if_noFees() public {
-        vm.prank(owner);
-        vm.expectRevert(NFTMarketplace.NoFeesToWithdraw.selector);
-        marketplace.withdrawFees();
-    }
+   function test_WithdrawFees_reverts_if_noFees() public {
+      vm.prank(owner);
+      vm.expectRevert(NFTMarketplace.NoFeesToWithdraw.selector);
+      marketplace.withdrawFees();
+   }
 
    //  Test to make sure that the withdraw works
    function test_WithdrawFees_success() public {
@@ -221,18 +221,18 @@ contract NFTMarketplaceTest is Test {
 
     /// updatePlatformFee() REVERT TESTS ///
    //  Tests to make sure that only owner can update the platform fee
-    function test_UpdatePlatformFee_reverts_if_notOwner() public {
-        vm.prank(attacker);
-        vm.expectRevert();
-        marketplace.updatePlatformFee(500);
-    }
+   function test_UpdatePlatformFee_reverts_if_notOwner() public {
+      vm.prank(attacker);
+      vm.expectRevert();
+      marketplace.updatePlatformFee(500);
+   }
 
-   // Tests to make sure that the owner doesn't update to a fee that is too high
-    function test_UpdatePlatformFee_reverts_if_feeTooHigh() public {
-        vm.prank(owner);
-        vm.expectRevert(NFTMarketplace.FeeTooHigh.selector);
-        marketplace.updatePlatformFee(10001);
-    }
+// Tests to make sure that the owner doesn't update to a fee that is too high
+   function test_UpdatePlatformFee_reverts_if_feeTooHigh() public {
+      vm.prank(owner);
+      vm.expectRevert(NFTMarketplace.FeeTooHigh.selector);
+      marketplace.updatePlatformFee(10001);
+   }
 
    // Test to make sure that the owner can successfully update the platform fee
    function test_UpdatePlaformFee_success() public {
