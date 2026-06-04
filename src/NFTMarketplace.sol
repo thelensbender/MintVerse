@@ -166,3 +166,84 @@ contract NFTMarketplace is Ownable {
       emit FeeUpdated(platformFeeBps);
    }
 }
+receive() external payable {}
+
+function testListNFT() public {
+    uint256 price = 1 ether;
+    uint256 tokenId = 0;
+
+    vm.startPrank(seller);
+
+    nft.approve(address(marketplace), tokenId);
+    marketplace.listNFT(address(nft), tokenId, price);
+
+    vm.stopPrank();
+
+    (
+        address listingSeller,
+        uint256 listingPrice,
+        bool active
+    ) = marketplace.listings(address(nft), tokenId);
+
+    assertEq(listingSeller, seller);
+    assertEq(listingPrice, price);
+    assertTrue(active);
+}
+
+function testBuyNFT() public {
+    uint256 price = 1 ether;
+    uint256 tokenId = 0;
+
+    vm.startPrank(seller);
+    nft.approve(address(marketplace), tokenId);
+    marketplace.listNFT(address(nft), tokenId, price);
+    vm.stopPrank();
+
+    vm.prank(buyer);
+    marketplace.buyNFT{value: price}(address(nft), tokenId);
+
+    assertEq(nft.ownerOf(tokenId), buyer);
+
+    (, , bool active) = marketplace.listings(address(nft), tokenId);
+    assertFalse(active);
+}
+
+function testCancelListing() public {
+    uint256 price = 1 ether;
+    uint256 tokenId = 0;
+
+    vm.startPrank(seller);
+    nft.approve(address(marketplace), tokenId);
+    marketplace.listNFT(address(nft), tokenId, price);
+
+    marketplace.cancelListing(address(nft), tokenId);
+    vm.stopPrank();
+
+    (, , bool active) = marketplace.listings(address(nft), tokenId);
+
+    assertFalse(active);
+}
+
+function testWithdrawFees() public {
+    uint256 price = 1 ether;
+    uint256 tokenId = 0;
+
+    vm.startPrank(seller);
+    nft.approve(address(marketplace), tokenId);
+    marketplace.listNFT(address(nft), tokenId, price);
+    vm.stopPrank();
+
+    vm.prank(buyer);
+    marketplace.buyNFT{value: price}(address(nft), tokenId);
+
+    uint256 fees = marketplace.platformFeesAccumulated();
+
+    uint256 ownerBalanceBefore = address(this).balance;
+
+    marketplace.withdrawFees();
+
+    uint256 ownerBalanceAfter = address(this).balance;
+
+    assertEq(marketplace.platformFeesAccumulated(), 0);
+    assertEq(ownerBalanceAfter, ownerBalanceBefore + fees);
+}
