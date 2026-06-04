@@ -11,7 +11,7 @@ contract NFTMarketplace is Ownable {
       uint256 price;
       bool active;
    }
-    
+
    // Errors
    error NotTokenOwner();
    error NotSeller();
