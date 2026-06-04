@@ -275,5 +275,5 @@ contract NFTMarketplaceTest is Test {
       vm.prank(buyer);
       vm.expectRevert(NFTMarketplace.NotListed.selector);
       marketplace.buyNFT{value: 1 ether}(address(nft), 0);
-   }
+   } 
 }
