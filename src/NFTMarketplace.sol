@@ -17,27 +17,27 @@ contract NFTMarketplace is Ownable {
    }
 
    // Errors
- /// @notice thrown when the caller does not own the NFT they are trying to list
-   error NotTokenOwner();
- /// @notice Thrown when a non-seller attempts to cancel a listing
-   error NotSeller();
- /// @notice Thrown when the marketplace has not been approved to transfer the NFT
-   error NotApproved();
-/// @notice Thrown when attempting to list an NFT that is already actively listed
-   error AlreadyListed(); 
-/// @notice Thrown when interacting with an NFT that has no active listing
-   error NotListed(); 
-/// @notice Thrown when a listing price of zero is provided
-   error PriceMustBeAboveZero(); 
-/// @notice Thrown when the ETH sent does not exactly match the listing price
-   error IncorrectPaymentAmount(); 
-/// @notice Thrown when the owner attempts to withdraw fees but none have accumulated
-   error NoFeesToWithdraw();
-/// @notice Thrown when an ETH transfer to the seller or owner fails
-   error TransferFailed();
-/// @notice Thrown when the proposed platform fee exceeds 10000 basis points (100%)
-   error FeeTooHigh();
-/// @notice Thrown when the buyer and seller are the same address
+   /// @notice thrown when the caller does not own the NFT they are trying to list
+      error NotTokenOwner();
+   /// @notice Thrown when a non-seller attempts to cancel a listing
+      error NotSeller();
+   /// @notice Thrown when the marketplace has not been approved to transfer the NFT
+      error NotApproved();
+   /// @notice Thrown when attempting to list an NFT that is already actively listed
+      error AlreadyListed(); 
+   /// @notice Thrown when interacting with an NFT that has no active listing
+      error NotListed(); 
+   /// @notice Thrown when a listing price of zero is provided
+      error PriceMustBeAboveZero(); 
+   /// @notice Thrown when the ETH sent does not exactly match the listing price
+      error IncorrectPaymentAmount(); 
+   /// @notice Thrown when the owner attempts to withdraw fees but none have accumulated
+      error NoFeesToWithdraw();
+   /// @notice Thrown when an ETH transfer to the seller or owner fails
+      error TransferFailed();
+   /// @notice Thrown when the proposed platform fee exceeds 10000 basis points (100%)
+      error FeeTooHigh();
+   /// @notice Thrown when the buyer and seller are the same address
    error SellerCannotBuyOwnNFT();
 
    // Events
@@ -54,16 +54,16 @@ contract NFTMarketplace is Ownable {
    uint256 public platformFeesAccumulated;
    mapping(address => mapping(uint256 => Listing)) public listings;
 
-/// @notice Creates the marketplace contract.
-/// @param _platformFeeBps Initial platform fee in basis points (250 = 2.5%).
-   constructor(uint256 _platformFeeBps) Ownable(msg.sender) {
-      platformFeeBps = _platformFeeBps;
-   }
-/// @notice Lists an NFT for sale.
-/// @dev Caller must own the NFT and approve the marketplace.
-/// @param nftContract Address of the NFT contract.
-/// @param tokenId ID of the NFT being listed.
-/// @param price Sale price in wei.
+   /// @notice Creates the marketplace contract.
+   /// @param _platformFeeBps Initial platform fee in basis points (250 = 2.5%).
+      constructor(uint256 _platformFeeBps) Ownable(msg.sender) {
+         platformFeeBps = _platformFeeBps;
+      }
+   /// @notice Lists an NFT for sale.
+   /// @dev Caller must own the NFT and approve the marketplace.
+   /// @param nftContract Address of the NFT contract.
+   /// @param tokenId ID of the NFT being listed.
+   /// @param price Sale price in wei.
    // Function for sellers to list NFT
    function listNFT(address nftContract, uint256 tokenId, uint256 price) external {
       // Makes sure that price is above 0
@@ -93,10 +93,10 @@ contract NFTMarketplace is Ownable {
       emit NFTListed(msg.sender, nftContract, tokenId, price);
    }
 
-/// @notice Cancels an active NFT listing.
-/// @dev Only the seller who listed the NFT can cancel it.
-/// @param nftContract Address of the NFT contract.
-/// @param tokenId ID of the NFT listing.
+   /// @notice Cancels an active NFT listing.
+   /// @dev Only the seller who listed the NFT can cancel it.
+   /// @param nftContract Address of the NFT contract.
+   /// @param tokenId ID of the NFT listing.
    // Function for a seller to cancel a listing
    function cancelListing(address nftContract, uint256 tokenId) external {
       Listing memory listing = listings[nftContract][tokenId];
@@ -116,11 +116,11 @@ contract NFTMarketplace is Ownable {
       emit ListingCancelled(msg.sender, nftContract, tokenId);
    }
 
-/// @notice Purchases a listed NFT.
-/// @dev Transfers NFT ownership and distributes payment.
-/// @dev Follows Checks-Effects-Interactions pattern to prevent reentrancy.
-/// @param nftContract Address of the NFT contract.
-/// @param tokenId ID of the NFT being purchased.
+   /// @notice Purchases a listed NFT.
+   /// @dev Transfers NFT ownership and distributes payment.
+   /// @dev Follows Checks-Effects-Interactions pattern to prevent reentrancy.
+   /// @param nftContract Address of the NFT contract.
+   /// @param tokenId ID of the NFT being purchased.
    // Function for buyers to buy NFT
    function buyNFT(address nftContract, uint256 tokenId) external payable {
       // Makes sure that the NFT is listed
@@ -164,42 +164,28 @@ contract NFTMarketplace is Ownable {
       emit NFTSold(msg.sender, listing.seller, nftContract, tokenId, listing.price);
    }
 
-/// @notice Withdraws accumulated marketplace fees.
-/// @dev Only the contract owner can withdraw fees.
-/// @dev Uses CEI pattern, zeroes balance before transferring.
-   // Function for the owner of contract to withdraw fee
+   /// @notice Withdraws accumulated marketplace fees.
+   /// @dev Only the contract owner can withdraw fees.
+   /// @dev Uses CEI pattern, zeroes balance before transferring.
+      // Function for the owner of contract to withdraw fee
    function withdrawFees() external onlyOwner {
       // Make sure there is fees to withdraw
       if (platformFeesAccumulated == 0) {
          revert NoFeesToWithdraw();
       }
-function withdrawFees() external onlyOwner {
-   if (platformFeesAccumulated == 0) {
-      revert NoFeesToWithdraw();
-   }
-// cache owner() address in withdrawFees to avoid double call
-   uint256 fee = platformFeesAccumulated;
-   platformFeesAccumulated = 0;
 
-   address currentOwner = owner(); // Cache owner address once
-
-   (bool success,) = currentOwner.call{value: fee}("");
-   if (!success) {
-      revert TransferFailed();
-   }
-
-   emit FeesWithdrawn(currentOwner, fee); // Uses same cached address
-}
       uint256 fee = platformFeesAccumulated;
       platformFeesAccumulated = 0;
 
+      address currentOwner = owner(); // Cache owner address once
+
       // Send fee to owner wallet
-      (bool success,) = owner().call{value: fee}("");
+      (bool success,) =currentOwner.call{value: fee}("");
       if (!success) {
          revert TransferFailed();
       }
 
-      emit FeesWithdrawn(owner(), fee);
+      emit FeesWithdrawn(currentOwner, fee); // Uses same cached address
    }
 
 /// @notice Updates the marketplace fee.

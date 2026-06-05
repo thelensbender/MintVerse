@@ -174,11 +174,12 @@ contract NFTMarketplaceTest is Test {
       vm.prank(seller);
       marketplace.listNFT(address(nft), tokenId, price);
 
-      marketplace.cancelListing(address(nft),tokenId);
+      vm.prank(seller);
+      marketplace.cancelListing(address(nft), tokenId);
+
       (address storedSeller, uint256 storedPrice, bool active) = marketplace.listings(address(nft), tokenId);
       assertEq(active, false);
    }
-
 
     /// withdrawFees() REVERT TESTS ///
    // Test to make sure that only owner can withdraw the fee
@@ -263,17 +264,15 @@ contract NFTMarketplaceTest is Test {
    /// Edge case tests ///
    // Buyer tries to buy an NFT that was just cancelled
    function test_Buyer_buys_cancelled_NFT() public {
-      // Seller lists the NFT
-      vm.prank(seller);
-      marketplace.listNFT(address(nft), 0, 1 ether);
+    vm.prank(seller);
+    marketplace.listNFT(address(nft), tokenId, 1 ether);
 
-      // Seller cancels it
-      vm.prank(seller);
-      marketplace.cancelListing(address(nft), 0);
+    vm.prank(seller);
+    marketplace.cancelListing(address(nft), tokenId);
 
-      // Buyer tries to buy it anyway — should revert
-      vm.prank(buyer);
-      vm.expectRevert(NFTMarketplace.NotListed.selector);
-      marketplace.buyNFT{value: 1 ether}(address(nft), 0);
-   } 
+    vm.deal(buyer, 1 ether);
+    vm.prank(buyer);
+    vm.expectRevert(NFTMarketplace.NotListed.selector);
+    marketplace.buyNFT{value: 1 ether}(address(nft), tokenId);
+}
 }
