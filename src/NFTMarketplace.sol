@@ -17,16 +17,27 @@ contract NFTMarketplace is Ownable {
    }
 
    // Errors
+ /// @notice thrown when the caller does not own the NFT they are trying to list
    error NotTokenOwner();
+ /// @notice Thrown when a non-seller attempts to cancel a listing
    error NotSeller();
+ /// @notice Thrown when the marketplace has not been approved to transfer the NFT
    error NotApproved();
-   error AlreadyListed();
-   error NotListed();
-   error PriceMustBeAboveZero();
-   error IncorrectPaymentAmount();
+/// @notice Thrown when attempting to list an NFT that is already actively listed
+   error AlreadyListed(); 
+/// @notice Thrown when interacting with an NFT that has no active listing
+   error NotListed(); 
+/// @notice Thrown when a listing price of zero is provided
+   error PriceMustBeAboveZero(); 
+/// @notice Thrown when the ETH sent does not exactly match the listing price
+   error IncorrectPaymentAmount(); 
+/// @notice Thrown when the owner attempts to withdraw fees but none have accumulated
    error NoFeesToWithdraw();
+/// @notice Thrown when an ETH transfer to the seller or owner fails
    error TransferFailed();
+/// @notice Thrown when the proposed platform fee exceeds 10000 basis points (100%)
    error FeeTooHigh();
+/// @notice Thrown when the buyer and seller are the same address
    error SellerCannotBuyOwnNFT();
 
    // Events
@@ -162,7 +173,23 @@ contract NFTMarketplace is Ownable {
       if (platformFeesAccumulated == 0) {
          revert NoFeesToWithdraw();
       }
+function withdrawFees() external onlyOwner {
+   if (platformFeesAccumulated == 0) {
+      revert NoFeesToWithdraw();
+   }
+// cache owner() address in withdrawFees to avoid double call
+   uint256 fee = platformFeesAccumulated;
+   platformFeesAccumulated = 0;
 
+   address currentOwner = owner(); // Cache owner address once
+
+   (bool success,) = currentOwner.call{value: fee}("");
+   if (!success) {
+      revert TransferFailed();
+   }
+
+   emit FeesWithdrawn(currentOwner, fee); // Uses same cached address
+}
       uint256 fee = platformFeesAccumulated;
       platformFeesAccumulated = 0;
 
