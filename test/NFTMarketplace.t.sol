@@ -174,8 +174,8 @@ contract NFTMarketplaceTest is Test {
       vm.prank(seller);
       marketplace.listNFT(address(nft), tokenId, price);
 
-      (address storedSeller, uint256 storedPrice, bool active) = marketplace.listings(address(nft), tokenId);
       marketplace.cancelListing(address(nft),tokenId);
+      (address storedSeller, uint256 storedPrice, bool active) = marketplace.listings(address(nft), tokenId);
       assertEq(active, false);
    }
 
