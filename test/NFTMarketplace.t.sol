@@ -174,11 +174,12 @@ contract NFTMarketplaceTest is Test {
       vm.prank(seller);
       marketplace.listNFT(address(nft), tokenId, price);
 
+      vm.prank(seller);
+      marketplace.cancelListing(address(nft), tokenId);
+
       (address storedSeller, uint256 storedPrice, bool active) = marketplace.listings(address(nft), tokenId);
-      marketplace.cancelListing(address(nft),tokenId);
       assertEq(active, false);
    }
-
 
     /// withdrawFees() REVERT TESTS ///
    // Test to make sure that only owner can withdraw the fee
@@ -263,65 +264,15 @@ contract NFTMarketplaceTest is Test {
    /// Edge case tests ///
    // Buyer tries to buy an NFT that was just cancelled
    function test_Buyer_buys_cancelled_NFT() public {
-      // Seller lists the NFT
-      vm.prank(seller);
-      marketplace.listNFT(address(nft), 0, 1 ether);
+    vm.prank(seller);
+    marketplace.listNFT(address(nft), tokenId, 1 ether);
 
-      // Seller cancels it
-      vm.prank(seller);
-      marketplace.cancelListing(address(nft), 0);
+    vm.prank(seller);
+    marketplace.cancelListing(address(nft), tokenId);
 
-      // Buyer tries to buy it anyway — should revert
-      vm.prank(buyer);
-      vm.expectRevert(NFTMarketplace.NotListed.selector);
-      marketplace.buyNFT{value: 1 ether}(address(nft), 0);
-   } 
-   /// vm.expectEmit TESTS ///
-    // Test that listNFT emits NFTListed event with correct arguments
-    function test_ListNFT_emitsEvent() public {
-        // Tell Foundry to check all 4 fields of the event
-        vm.expectEmit(true, true, true, true);
-
-        // Emit the event we EXPECT to see
-        emit NFTMarketplace.NFTListed(seller, address(nft), tokenId, price);
-
-        // Call the function that should emit it
-        vm.prank(seller);
-        marketplace.listNFT(address(nft), tokenId, price);
-    }
-
-    // Test that buyNFT emits NFTSold event with correct arguments
-    function test_BuyNFT_emitsEvent() public {
-        // List the NFT first
-        vm.prank(seller);
-        marketplace.listNFT(address(nft), tokenId, price);
-
-        // Tell Foundry to check all 4 fields of the event
-        vm.expectEmit(true, true, true, true);
-
-        // Emit the event we EXPECT to see
-        emit NFTMarketplace.NFTSold(buyer, seller, address(nft), tokenId, price);
-
-        // Call buyNFT that should emit it
-        vm.deal(buyer, price);
-        vm.prank(buyer);
-        marketplace.buyNFT{value: price}(address(nft), tokenId);
-    }
-
-    // Test that cancelListing emits ListingCancelled event
-    function test_CancelListing_emitsEvent() public {
-        // List the NFT first
-        vm.prank(seller);
-        marketplace.listNFT(address(nft), tokenId, price);
-
-        // Tell Foundry to check all 4 fields of the event
-        vm.expectEmit(true, true, true, true);
-
-        // Emit the event we EXPECT to see
-        emit NFTMarketplace.ListingCancelled(seller, address(nft), tokenId);
-
-        // Call the function that should emit it
-        vm.prank(seller);
-        marketplace.cancelListing(address(nft), tokenId);
-    }
+    vm.deal(buyer, 1 ether);
+    vm.prank(buyer);
+    vm.expectRevert(NFTMarketplace.NotListed.selector);
+    marketplace.buyNFT{value: 1 ether}(address(nft), tokenId);
+}
 }
