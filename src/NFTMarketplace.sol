@@ -5,6 +5,10 @@ pragma solidity ^0.8.24;
 import {IERC721} from '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
+/// @title NFT Marketplace
+/// @author Team Project
+/// @notice A marketplace that allows users to list, buy, and sell ERC721 NFTs.
+/// @dev The marketplace charges a platform fee on successful sales and allows the owner to withdraw accumulated fees.
 contract NFTMarketplace is Ownable {
    struct Listing {
       address seller;
@@ -39,10 +43,16 @@ contract NFTMarketplace is Ownable {
    uint256 public platformFeesAccumulated;
    mapping(address => mapping(uint256 => Listing)) public listings;
 
+/// @notice Creates the marketplace contract.
+/// @param _platformFeeBps Initial platform fee in basis points (250 = 2.5%).
    constructor(uint256 _platformFeeBps) Ownable(msg.sender) {
       platformFeeBps = _platformFeeBps;
    }
-
+/// @notice Lists an NFT for sale.
+/// @dev Caller must own the NFT and approve the marketplace.
+/// @param nftContract Address of the NFT contract.
+/// @param tokenId ID of the NFT being listed.
+/// @param price Sale price in wei.
    // Function for sellers to list NFT
    function listNFT(address nftContract, uint256 tokenId, uint256 price) external {
       // Makes sure that price is above 0
@@ -72,6 +82,10 @@ contract NFTMarketplace is Ownable {
       emit NFTListed(msg.sender, nftContract, tokenId, price);
    }
 
+/// @notice Cancels an active NFT listing.
+/// @dev Only the seller who listed the NFT can cancel it.
+/// @param nftContract Address of the NFT contract.
+/// @param tokenId ID of the NFT listing.
    // Function for a seller to cancel a listing
    function cancelListing(address nftContract, uint256 tokenId) external {
       Listing memory listing = listings[nftContract][tokenId];
@@ -91,6 +105,11 @@ contract NFTMarketplace is Ownable {
       emit ListingCancelled(msg.sender, nftContract, tokenId);
    }
 
+/// @notice Purchases a listed NFT.
+/// @dev Transfers NFT ownership and distributes payment.
+/// @dev Follows Checks-Effects-Interactions pattern to prevent reentrancy.
+/// @param nftContract Address of the NFT contract.
+/// @param tokenId ID of the NFT being purchased.
    // Function for buyers to buy NFT
    function buyNFT(address nftContract, uint256 tokenId) external payable {
       // Makes sure that the NFT is listed
@@ -134,6 +153,9 @@ contract NFTMarketplace is Ownable {
       emit NFTSold(msg.sender, listing.seller, nftContract, tokenId, listing.price);
    }
 
+/// @notice Withdraws accumulated marketplace fees.
+/// @dev Only the contract owner can withdraw fees.
+/// @dev Uses CEI pattern, zeroes balance before transferring.
    // Function for the owner of contract to withdraw fee
    function withdrawFees() external onlyOwner {
       // Make sure there is fees to withdraw
@@ -153,6 +175,10 @@ contract NFTMarketplace is Ownable {
       emit FeesWithdrawn(owner(), fee);
    }
 
+/// @notice Updates the marketplace fee.
+/// @dev Only the owner can update the fee.
+/// @dev Fee is capped at 10000 bps (100%) to prevent abuse.
+/// @param _updatePlatformFee New fee in basis points.
    // Function to update platform fee
    function updatePlatformFee(uint256 _updatePlatformFee) external onlyOwner {
       // Makes sure that the fee isnt too high
