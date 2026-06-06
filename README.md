@@ -3,7 +3,18 @@
 **Group 16** | Solidity · Foundry · OpenZeppelin
 
 ---
+## Deployed Contracts (Sepolia Testnet)
 
+| Contract | Address |
+|---|---|
+| MockNFT | 0xDABBB9F743DB3Ec67324C7F5c89478816C369f92 |
+| NFTMarketplace | 0x747F13E189945c0b6d276aaDDA8bCB3C24C564aE |
+
+View on Etherscan:
+- [MockNFT](https://sepolia.etherscan.io/address/0xDABBB9F743DB3Ec67324C7F5c89478816C369f92)
+- [NFTMarketplace](https://sepolia.etherscan.io/address/0x747F13E189945c0b6d276aaDDA8bCB3C24C564aE)
+
+---
 ## What is Mintverse?
 
 Mintverse is a decentralized NFT marketplace built on Ethereum. Users can mint NFTs, list them for sale, buy them with ETH, and cancel their listings. The contract owner earns a platform fee on every sale and can withdraw it at any time.
