@@ -7,12 +7,12 @@
 
 | Contract | Address |
 |---|---|
-| MockNFT | 0xDABBB9F743DB3Ec67324C7F5c89478816C369f92 |
-| NFTMarketplace | 0x747F13E189945c0b6d276aaDDA8bCB3C24C564aE |
+| MockNFT | 0x8b4CB0af8d9beF702261C516cE1eA78cFDeD243E |
+| NFTMarketplace | 0x822a95ff7dbf740e20575e246b0f999f7c90a310 |
 
 View on Etherscan:
-- [MockNFT](https://sepolia.etherscan.io/address/0xDABBB9F743DB3Ec67324C7F5c89478816C369f92)
-- [NFTMarketplace](https://sepolia.etherscan.io/address/0x747F13E189945c0b6d276aaDDA8bCB3C24C564aE)
+- [MockNFT](https://sepolia.etherscan.io/address/0x8b4CB0af8d9beF702261C516cE1eA78cFDeD243E)
+- [NFTMarketplace](https://sepolia.etherscan.io/address/0x822a95ff7dbf740e20575e246b0f999f7c90a310)
 
 ---
 ## What is Mintverse?
