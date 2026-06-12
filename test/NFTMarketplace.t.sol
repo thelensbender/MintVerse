@@ -27,7 +27,7 @@ contract NFTMarketplaceTest is Test {
         nft = new MockNFT();
 
         // Mint token to seller — returns the tokenId
-        tokenId = nft.mint(seller);
+        tokenId = nft.mint(seller, "testtest");
 
         // Seller approves marketplace
         vm.prank(seller);
